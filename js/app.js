@@ -33,13 +33,15 @@ var viewModel = function() {
     restaurants.forEach(function(restaurant){
         self.restaurantList.push( new Restaurant(restaurant) );
     });
-    this.filteredList = ko.observableArray();
+    this.filteredList = ko.observableArray(this.restaurantList());
     this.applyFilter = function(kw) {
+        self.filteredList([]);
         self.restaurantList().forEach(function(restaurant){
-            if (restaurant.indexOf(kw) > -1) {
+            if (restaurant.name().toLowerCase().indexOf(kw.toLowerCase()) > -1) {
                 self.filteredList.push(restaurant);
             }
         });
+        updateMarkers();
     }
 };
 
@@ -47,40 +49,60 @@ var Restaurant = function(data) {
     this.name = ko.observable(data.name);
     this.description = ko.observable(data.description);
     this.position = ko.observable(data.position);
+    this.infowindow;
+    this.marker;
 };
 
 var viewmodel = new viewModel();
 ko.applyBindings(viewmodel);
 
+var markers = [];
+var map;
+
 function initMap() {
-    var map = new google.maps.Map(document.getElementById('map'), {
+    map = new google.maps.Map(document.getElementById('map'), {
         center: {lat: 37.8987772, lng: -122.0620264},
         zoom: 16
     });
 
-    var infowindows = [];
-
-    viewmodel.restaurantList().forEach(function(restaurant){
+    viewmodel.filteredList().forEach(function(restaurant){
         var infowindow = new google.maps.InfoWindow({
             content: "<h1>"+ restaurant.name() +"</h1>"
         });
 
-        infowindows.push(infowindow);
+        restaurant.infowindow = infowindow;
 
         var marker = new google.maps.Marker({
             position: restaurant.position(),
             map: map
         });
 
+        restaurant.marker = marker;
+        markers.push(marker);
+
         marker.addListener('click', function() {
-            infowindows.forEach(function(infowindow){
-                infowindow.close();
+            viewmodel.restaurantList().forEach(function(restaurant){
+                restaurant.infowindow.close();
             });
             infowindow.open(map, marker);
         });
     });
 }
 
+
+// Function to remove markers
+var updateMarkers = function() {
+    markers.forEach(function(marker) {
+        marker.setMap(null);
+    });
+    viewmodel.filteredList().forEach(function(restaurant){
+        restaurant.marker.setMap(map);
+    });
+}
+
+// jQuery
 $("#filter").submit(function(event){
     event.preventDefault();
+    var kw = $("#kw").val();
+    viewmodel.applyFilter(kw);
 });
