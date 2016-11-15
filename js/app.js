@@ -33,6 +33,14 @@ var viewModel = function() {
     restaurants.forEach(function(restaurant){
         self.restaurantList.push( new Restaurant(restaurant) );
     });
+    this.filteredList = ko.observableArray();
+    this.applyFilter = function(kw) {
+        self.restaurantList().forEach(function(restaurant){
+            if (restaurant.indexOf(kw) > -1) {
+                self.filteredList.push(restaurant);
+            }
+        });
+    }
 };
 
 var Restaurant = function(data) {
@@ -41,8 +49,8 @@ var Restaurant = function(data) {
     this.position = ko.observable(data.position);
 };
 
-ko.applyBindings(new viewModel());
-
+var viewmodel = new viewModel();
+ko.applyBindings(viewmodel);
 
 function initMap() {
     var map = new google.maps.Map(document.getElementById('map'), {
@@ -52,15 +60,15 @@ function initMap() {
 
     var infowindows = [];
 
-    restaurants.forEach(function(restaurant){
+    viewmodel.restaurantList().forEach(function(restaurant){
         var infowindow = new google.maps.InfoWindow({
-            content: "<h1>"+ restaurant.name +"</h1>"
+            content: "<h1>"+ restaurant.name() +"</h1>"
         });
 
         infowindows.push(infowindow);
 
         var marker = new google.maps.Marker({
-            position: restaurant.position,
+            position: restaurant.position(),
             map: map
         });
 
@@ -73,3 +81,6 @@ function initMap() {
     });
 }
 
+$("#filter").submit(function(event){
+    event.preventDefault();
+});

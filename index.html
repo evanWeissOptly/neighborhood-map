@@ -11,6 +11,13 @@
   </head>
   <body class="container">
     <div id="map" class="row"></div>
+    <div>
+        <form id="filter">
+            Search:
+            <input id="kw" type="text" name="kw">
+            <input id="submit" type="submit" value="Submit">
+        </form>
+    </div>
     <ul id="list" class="row" data-bind="foreach: restaurantList">
         <li data-bind="text: name"></li>
     </ul>
