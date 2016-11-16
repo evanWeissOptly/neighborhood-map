@@ -45,6 +45,8 @@ var viewModel = function() {
         updateMarkers();
     }
 
+    this.error = ko.observable();
+
     this.click = function(restaurant) {
         //close all infowindows
         viewmodel.restaurantList().forEach(function(restaurant){
@@ -53,6 +55,7 @@ var viewModel = function() {
         //set infowindow content
         var content = "<h4>" + restaurant.name + "</h4>";
         content += "<h5>" + restaurant.category() + "</h5>";
+        content += '<a href="' + restaurant.url() + '">' + restaurant.url() + '</a>'
         content += "<div>" + restaurant.phone() + "</div>";
         restaurant.address().forEach(function(line){
             content += "<div>" + line + "</div>";
@@ -79,6 +82,7 @@ var Restaurant = function(data) {
     this.address = ko.observable();
     this.category = ko.observable();
     this.phone = ko.observable();
+    this.url = ko.observable();
 };
 
 var viewmodel = new viewModel();
@@ -94,9 +98,7 @@ function initMap() {
     });
 
     viewmodel.restaurantList().forEach(function(restaurant){
-        var infowindow = new google.maps.InfoWindow({
-            content: "<h4>"+ restaurant.name +"</h4>"
-        });
+        var infowindow = new google.maps.InfoWindow({});
 
         restaurant.infowindow = infowindow;
 
@@ -143,9 +145,11 @@ viewmodel.restaurantList().forEach(function(restaurant){
     var settings = {
         success: function(data) {
             var venue = data.response.venues[0];
-            restaurant.address(venue.location.formattedAddress);
-            restaurant.phone(venue.contact.formattedPhone);
-            restaurant.category(venue.categories[0].name);
+            console.log(venue);
+            restaurant.address(venue.location.formattedAddress || "");
+            restaurant.phone(venue.contact.formattedPhone || "");
+            restaurant.category(venue.categories[0].name || "");
+            restaurant.url(venue.url || "");
         },
         error: function() {
             console.log("an error ocurred");
