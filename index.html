@@ -19,7 +19,7 @@
         </form>
     </div>
     <ul id="list" class="row" data-bind="foreach: filteredList">
-        <li data-bind="text: name"></li>
+        <li data-bind="text: name, click: $parent.click"></li>
     </ul>
 
     <script src="js/lib/knockout-3.2.0.js"></script>

@@ -31,24 +31,38 @@ var viewModel = function() {
     var self = this;
     this.restaurantList = ko.observableArray();
     restaurants.forEach(function(restaurant){
-        self.restaurantList.push( new Restaurant(restaurant) );
+        self.restaurantList().push( new Restaurant(restaurant) );
     });
     this.filteredList = ko.observableArray(this.restaurantList());
+
     this.applyFilter = function(kw) {
         self.filteredList([]);
         self.restaurantList().forEach(function(restaurant){
-            if (restaurant.name().toLowerCase().indexOf(kw.toLowerCase()) > -1) {
+            if (restaurant.name.toLowerCase().indexOf(kw) > -1) {
                 self.filteredList.push(restaurant);
             }
         });
         updateMarkers();
     }
+    this.click = function(restaurant) {
+        //close all infowindows
+        viewmodel.restaurantList().forEach(function(restaurant){
+            restaurant.infowindow.close();
+        });
+        //open infowindow for this marker
+        restaurant.infowindow.open(map, restaurant.marker);
+        //animate marker
+        restaurant.marker.setAnimation(google.maps.Animation.BOUNCE);
+        setTimeout(function(){
+            restaurant.marker.setAnimation(null);
+        }, 1400);
+    }
 };
 
 var Restaurant = function(data) {
-    this.name = ko.observable(data.name);
-    this.description = ko.observable(data.description);
-    this.position = ko.observable(data.position);
+    this.name = data.name;
+    this.description = data.description;
+    this.position = data.position;
     this.infowindow;
     this.marker;
 };
@@ -67,13 +81,13 @@ function initMap() {
 
     viewmodel.filteredList().forEach(function(restaurant){
         var infowindow = new google.maps.InfoWindow({
-            content: "<h1>"+ restaurant.name() +"</h1>"
+            content: "<h1>"+ restaurant.name +"</h1>"
         });
 
         restaurant.infowindow = infowindow;
 
         var marker = new google.maps.Marker({
-            position: restaurant.position(),
+            position: restaurant.position,
             map: map
         });
 
@@ -81,10 +95,7 @@ function initMap() {
         markers.push(marker);
 
         marker.addListener('click', function() {
-            viewmodel.restaurantList().forEach(function(restaurant){
-                restaurant.infowindow.close();
-            });
-            infowindow.open(map, marker);
+            viewmodel.click(restaurant);
         });
     });
 }
@@ -103,6 +114,6 @@ var updateMarkers = function() {
 // jQuery
 $("#filter").submit(function(event){
     event.preventDefault();
-    var kw = $("#kw").val();
+    var kw = $("#kw").val().toLowerCase();
     viewmodel.applyFilter(kw);
 });
