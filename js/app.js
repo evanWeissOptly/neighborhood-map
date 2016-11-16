@@ -44,12 +44,23 @@ var viewModel = function() {
         });
         updateMarkers();
     }
+
     this.click = function(restaurant) {
         //close all infowindows
         viewmodel.restaurantList().forEach(function(restaurant){
             restaurant.infowindow.close();
         });
+        //set infowindow content
+        var content = "<h4>" + restaurant.name + "</h4>";
+        content += "<h5>" + restaurant.category() + "</h5>";
+        content += "<div>" + restaurant.phone() + "</div>";
+        restaurant.address().forEach(function(line){
+            content += "<div>" + line + "</div>";
+        });
+        content += "<i>" + restaurant.description + "</i>"
+
         //open infowindow for this marker
+        restaurant.infowindow.setContent(content);
         restaurant.infowindow.open(map, restaurant.marker);
         //animate marker
         restaurant.marker.setAnimation(google.maps.Animation.BOUNCE);
@@ -65,6 +76,9 @@ var Restaurant = function(data) {
     this.position = data.position;
     this.infowindow;
     this.marker;
+    this.address = ko.observable();
+    this.category = ko.observable();
+    this.phone = ko.observable();
 };
 
 var viewmodel = new viewModel();
@@ -79,9 +93,9 @@ function initMap() {
         zoom: 16
     });
 
-    viewmodel.filteredList().forEach(function(restaurant){
+    viewmodel.restaurantList().forEach(function(restaurant){
         var infowindow = new google.maps.InfoWindow({
-            content: "<h1>"+ restaurant.name +"</h1>"
+            content: "<h4>"+ restaurant.name +"</h4>"
         });
 
         restaurant.infowindow = infowindow;
@@ -116,4 +130,26 @@ $("#filter").submit(function(event){
     event.preventDefault();
     var kw = $("#kw").val().toLowerCase();
     viewmodel.applyFilter(kw);
+});
+
+// Foursquare API stuff
+var request_url = function(query) {
+    return "https://api.foursquare.com/v2/venues/search?near=walnut creek&query="+ query +"&intent=match&client_id=WLTEWU4ZCJ0XA1Z0L2VQBUAXKQIGLUQGI1NBG4XV2M0ZLMND&client_secret=5RG21TJCKX3XQFRAE5BUDKKHTEZCAPQI5G0XZAJQITUZGU31&v=20161115"
+}
+
+// Get Foursquare data for each restaurant (we'll do address, phone number, and category)
+viewmodel.restaurantList().forEach(function(restaurant){
+    var query = restaurant.name;
+    var settings = {
+        success: function(data) {
+            var venue = data.response.venues[0];
+            restaurant.address(venue.location.formattedAddress);
+            restaurant.phone(venue.contact.formattedPhone);
+            restaurant.category(venue.categories[0].name);
+        },
+        error: function() {
+            console.log("an error ocurred");
+        }
+    };
+    jQuery.ajax(request_url(query), settings);
 });
