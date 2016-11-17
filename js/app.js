@@ -92,7 +92,7 @@ var viewModel = function() {
         content += "Evan says: <i>" + restaurant.description + "</i>";
 
         restaurant.infowindow.setContent(content);
-    }
+    };
 
     /* method will be used to control clicks on markers and retaurants list items */
     this.click = function(restaurant) {
@@ -110,7 +110,7 @@ var viewModel = function() {
         setTimeout(function(){
             restaurant.marker.setAnimation(null);
         }, 1400);
-    }
+    };
 
     // hide all markers and then show all markers in filteredList
     this.updateMarkers = function() {
@@ -120,24 +120,23 @@ var viewModel = function() {
         self.filteredList().forEach(function(restaurant){
             restaurant.marker.setMap(map);
         });
-    }
+    };
 
     // nav tray open and close (courtesy of http://www.w3schools.com/howto/howto_js_sidenav.asp)
     this.openNav = function() {
         document.getElementById("sidenav").style.width = "250px";
-    }
+    };
 
     this.closeNav = function() {
         document.getElementById("sidenav").style.width = "0";
-    }
+    };
 
     // Build foursquare API request url, query will be the restaurant's name
     this.request_url = function(query) {
-        var url = "https://api.foursquare.com/v2/venues/search?near=walnut creek&query=" + query
-        url += "&intent=match&client_id=WLTEWU4ZCJ0XA1Z0L2VQBUAXKQIGLUQGI1NBG4XV2M0ZLMND&"
-        url += "client_secret=5RG21TJCKX3XQFRAE5BUDKKHTEZCAPQI5G0XZAJQITUZGU31&v=20161115"
-        return url
-    }
+        return "https://api.foursquare.com/v2/venues/search?near=walnut creek&query=" + query +
+        "&intent=match&client_id=WLTEWU4ZCJ0XA1Z0L2VQBUAXKQIGLUQGI1NBG4XV2M0ZLMND&" +
+        "client_secret=5RG21TJCKX3XQFRAE5BUDKKHTEZCAPQI5G0XZAJQITUZGU31&v=20161115";
+    };
 
     // Get Foursquare data for each restaurant (we'll do address, phone number, category and url)
     this.restaurantList().forEach(function(restaurant){
@@ -153,7 +152,8 @@ var viewModel = function() {
             },
             error: function() {
                 // on failure, populate self.error to be displayed in error div
-                var errorText = "A Foursquare API error occurred.  Restaurant contact information may not be available.";
+                var errorText = "A Foursquare API error occurred.  " +
+                "Restaurant contact information may not be available.";
                 if (self.error().indexOf(errorText) == -1) {
                     self.error.push(errorText);
                 }
@@ -196,4 +196,3 @@ function initMap() {
         });
     });
 }
-
