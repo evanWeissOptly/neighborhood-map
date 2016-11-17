@@ -16,12 +16,12 @@ Within [this respository] (https://github.com/evanpweiss/neighborhood-map), you'
 
 * index.html (contains the structure of the application. data-bind attributes refer to the Knockout viewModel defined in app.js)
 * js
-** app.js (defines data Model, viewModel, Google Maps and Foursquare functions)
-** lib
-*** knockout-3.2.0.js (Knockout JS Library, see [knockoutjs.com] (knockoutjs.com))
+        * app.js (defines data Model, viewModel, Google Maps and Foursquare functions)
+        * lib
+                * knockout-3.2.0.js (Knockout JS Library, see [knockoutjs.com] (knockoutjs.com))
 * styles
-** custom.css (contains styles specific to this project)
-** skeleton.css (Skeleton CSS responsive framework, see [http://getskeleton.com/] (http://getskeleton.com/))
+        * custom.css (contains styles specific to this project)
+        * skeleton.css (Skeleton CSS responsive framework, see [http://getskeleton.com/] (http://getskeleton.com/))
 
 ## Versioning
 
