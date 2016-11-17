@@ -1,31 +1,38 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>Simple Map</title>
-    <meta name="viewport" content="initial-scale=1.0">
-    <meta charset="utf-8">
-    <title>Neighborhood Map</title>
-    <link rel="stylesheet" type="text/css" href="styles/skeleton.css">
-    <link rel="stylesheet" type="text/css" href="styles/custom.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-  </head>
-  <body class="container">
-    <div class="row" data-bind="text: error"></div>
-    <div id="map"></div>
-    <div>
-        <form id="filter">
-            Search:
-            <input id="kw" type="text" name="kw">
-            <input id="submit" type="submit" value="Submit">
-        </form>
-    </div>
-    <ul id="list" class="row" data-bind="foreach: filteredList">
-        <li data-bind="text: name, click: $parent.click"></li>
-    </ul>
+    <head>
+        <title>Simple Map</title>
+        <meta name="viewport" content="initial-scale=1.0">
+        <meta charset="utf-8">
+        <title>Neighborhood Map</title>
+        <link rel="stylesheet" type="text/css" href="styles/skeleton.css">
+        <link rel="stylesheet" type="text/css" href="styles/custom.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    </head>
+    <body class="container u-full-width u-max-full-width">
+        <header class="row">
+            <span class="two columns" data-bind="click: openNav">&nbsp&nbsp&nbsp&nbsp&nbsp&#9776</span>
+            <span class="ten columns">Neighborhood Map!</span>
+            <div data-bind="foreach: error">
+                <div class="row" data-bind="text: $data"></div>
+            </div>
+        </header>
+        <div id="map"></div>
+        <div id="sidenav" class="sidenav">
+            <a href="javascript:void(0)" class="closebtn" data-bind="click: closeNav">&times;</a>
+            <form id="filter">
+                Search:
+                <input id="kw" type="text" name="kw" placeholder="keyword here">
+                <input id="submit" type="submit" value="filter restaurants" class="button-primary">
+            </form>
 
-    <script src="js/lib/knockout-3.2.0.js"></script>
-    <script src="js/app.js"></script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC6ZkMZ5Ftqc5lgCpw9LKXhaFepwDfD_dw&callback=initMap"
-    async defer></script>
-  </body>
+            <ul id="list" data-bind="foreach: filteredList">
+                <li data-bind="text: name, click: $parent.click"></li>
+            </ul>
+        </div>
+        <script src="js/lib/knockout-3.2.0.js"></script>
+        <script src="js/app.js"></script>
+        <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC6ZkMZ5Ftqc5lgCpw9LKXhaFepwDfD_dw&callback=initMap"
+        async defer></script>
+    </body>
 </html>
