@@ -22,7 +22,7 @@ Within [this respository] (https://github.com/evanpweiss/neighborhood-map), you'
 
 ## Versioning
 
-This is version 1.0 of my Neighborhood Map project.
+This is version 1.1 of my Neighborhood Map project.
 
 ## Credits
 
