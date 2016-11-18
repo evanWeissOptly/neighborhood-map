@@ -55,25 +55,46 @@ var ViewModel = function() {
     Model.restaurants.forEach(function(restaurant){
         self.restaurantList().push( new Restaurant(restaurant) );
     });
-    this.filteredList = ko.observableArray(this.restaurantList());
 
-    // jQuery event handler for filter form submit
-    $('#filter').submit(function(event){
-        // prevent form submit and then get search keyword
-        event.preventDefault();
-        var kw = $('#kw').val().toLowerCase();
-        // reset filteredList
-        self.filteredList([]);
+    // this observable will store text input from the search field
+    this.kw = ko.observable(null);
 
-        // check each restaurant and add to filteredList if it matches search keyword
-        self.restaurantList().forEach(function(restaurant){
-            if (restaurant.name.toLowerCase().indexOf(kw) > -1) {
-                self.filteredList.push(restaurant);
-            }
+    // we will compute a filtered list of restaurants based on the value of the search keyword
+    this.filteredList = ko.computed(function(){
+        if (this.kw() !== null) {
+            var newList = [];
+            self.restaurantList().forEach(function(restaurant){
+                if (restaurant.name.toLowerCase().indexOf(self.kw().toLowerCase()) > -1) {
+                    newList.push(restaurant);
+                }
+            });
+            return newList;
+        } else {
+            return self.restaurantList();
+        }
+    }, this);
+
+    /* Add a subscribe function which will be triggered to show and hide markers each time the
+    value of filteredList changes.  Also close the infowindow if it is bound to an invisible marker */
+    this.filteredList.subscribe(function() {
+        self.restaurantList().forEach(function(restaurant) {
+            restaurant.marker.setVisible(false);
         });
 
-        // update markers to match filtered list
-        self.updateMarkers();
+        // tracks if the infowindow is attached to a visible marker
+        var visible = false;
+
+        self.filteredList().forEach(function(restaurant){
+            if (infowindow.content.indexOf(restaurant.name) > -1) {
+                visible = true;
+            }
+            restaurant.marker.setVisible(true);
+        });
+
+        // if the infowindow is not attached to a visible marker, close it.
+        if (visible === false) {
+            infowindow.close();
+        }
     });
 
     /* observable array to populate with text to display when APIs fail
@@ -84,7 +105,11 @@ var ViewModel = function() {
     this.populateContent = function(restaurant) {
         var content = '<h4>' + restaurant.name + '</h4>';
         content += '<h5>' + restaurant.category() + '</h5>';
-        content += '<a href="' + restaurant.url() + '" target="_blank">' + restaurant.url() + '</a>'
+        if (restaurant.url() === null) {
+            content += '<div>No website provided</div>';
+        } else {
+            content += '<a href="' + restaurant.url() + '" target="_blank">' + restaurant.url() + '</a>';
+        }
         content += '<div>' + restaurant.phone() + '</div>';
         restaurant.address().forEach(function(line){ // note that address is an array
             content += '<div>' + line + '</div>';
@@ -92,19 +117,17 @@ var ViewModel = function() {
         content += '<div class="disclaimer">Contact info courtesy of Foursquare</div>';
         content += 'Evan says: <i>' + restaurant.description + '</i>';
 
-        restaurant.infowindow.setContent(content);
+        infowindow.setContent(content);
     };
 
     /* method will be used to control clicks on markers and retaurants list items */
     this.click = function(restaurant) {
-        // close all infowindows
-        viewmodel.restaurantList().forEach(function(restaurant){
-            restaurant.infowindow.close();
-        });
+        // pan to marker position
+        map.panTo(restaurant.marker.getPosition());
 
-        //open infowindow for this marker, populating async foursquare content
-        self.populateContent(restaurant)
-        restaurant.infowindow.open(map, restaurant.marker);
+        // open infowindow for this marker, populating async foursquare content
+        self.populateContent(restaurant);
+        infowindow.open(map, restaurant.marker);
 
         // animate marker on click
         restaurant.marker.setAnimation(google.maps.Animation.BOUNCE);
@@ -113,23 +136,17 @@ var ViewModel = function() {
         }, 1400);
     };
 
-    // hide all markers and then show all markers in filteredList
-    this.updateMarkers = function() {
-        self.restaurantList().forEach(function(restaurant) {
-            restaurant.marker.setMap(null);
-        });
-        self.filteredList().forEach(function(restaurant){
-            restaurant.marker.setMap(map);
-        });
-    };
+    // observable to control the width of the side nav.  Starts with value of 0 so that side nav is hidden.
+    this.navWidth = ko.observable('0');
 
-    // nav tray open and close (courtesy of http://www.w3schools.com/howto/howto_js_sidenav.asp)
+    // When hamburger button is clicked, set navWidth to 250px
     this.openNav = function() {
-        document.getElementById('sidenav').style.width = '250px';
+        self.navWidth('250px');
     };
 
+    // When close button is clicked, set navWidth back to 0
     this.closeNav = function() {
-        document.getElementById('sidenav').style.width = '0';
+        self.navWidth('0');
     };
 
     // Build foursquare API request url, query will be the restaurant's name
@@ -146,10 +163,10 @@ var ViewModel = function() {
             success: function(data) {
                 // on success, grab the data from the response and set on the restaurant object
                 var venue = data.response.venues[0];
-                restaurant.address(venue.location.formattedAddress || '');
-                restaurant.phone(venue.contact.formattedPhone || '');
-                restaurant.category(venue.categories[0].name || '');
-                restaurant.url(venue.url || '');
+                restaurant.address(venue.location.formattedAddress || ['No address provided']);
+                restaurant.phone(venue.contact.formattedPhone || 'No phone number provided');
+                restaurant.category(venue.categories[0].name || 'Category unknown');
+                restaurant.url(venue.url || null);
             },
             error: function() {
                 // on failure, populate self.error to be displayed in error div
@@ -171,6 +188,7 @@ ko.applyBindings(viewmodel);
 
 // initialize Google Maps API
 var map;
+var infowindow;
 
 function initMap() {
     // initialize map object
@@ -179,11 +197,11 @@ function initMap() {
         zoom: 16
     });
 
-    // for each restaurant, create InfoWindow and Marker objects
-    viewmodel.restaurantList().forEach(function(restaurant){
-        var infowindow = new google.maps.InfoWindow({});
+    // create empty info window object
+    infowindow = new google.maps.InfoWindow({});
 
-        restaurant.infowindow = infowindow;
+    // for each restaurant, create Marker objects
+    viewmodel.restaurantList().forEach(function(restaurant){
 
         var marker = new google.maps.Marker({
             position: restaurant.position,
@@ -196,4 +214,9 @@ function initMap() {
             viewmodel.click(restaurant);
         });
     });
+}
+
+// function for Google Maps API error handling
+function mapError() {
+    viewmodel.error.push('A Google Maps API error occurred.  The map may not display!');
 }

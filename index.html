@@ -1,12 +1,11 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <meta name="viewport" content="initial-scale=1.0">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta charset="utf-8">
         <title>Neighborhood Map</title>
         <link rel="stylesheet" href="styles/skeleton.css">
         <link rel="stylesheet" href="styles/custom.css">
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
     </head>
     <body class="container u-full-width u-max-full-width">
         <header class="row">
@@ -17,21 +16,19 @@
             </div>
         </header>
         <div id="map"></div>
-        <div id="sidenav" class="sidenav">
+        <div class="sidenav" data-bind="style: { width: navWidth }">
             <a href="javascript:void(0)" class="closebtn" data-bind="click: closeNav">&times;</a>
-            <form id="filter">
-                Search:
-                <input id="kw" type="text" name="kw" placeholder="keyword here">
-                <input id="submit" type="submit" value="filter restaurants" class="button-primary">
-            </form>
+            Search:
+            <input data-bind="textInput: kw" type="text" name="kw" placeholder="keyword here">
 
-            <ul id="list" data-bind="foreach: filteredList">
+            <ul data-bind="foreach: filteredList">
                 <li data-bind="text: name, click: $parent.click"></li>
             </ul>
         </div>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
         <script src="js/lib/knockout-3.2.0.js"></script>
         <script src="js/app.js"></script>
         <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC6ZkMZ5Ftqc5lgCpw9LKXhaFepwDfD_dw&callback=initMap"
-        async defer></script>
+        async defer onerror="mapError()"></script>
     </body>
 </html>
